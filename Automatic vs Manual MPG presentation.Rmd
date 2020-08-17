@@ -1,0 +1,193 @@
+---
+title: "Automatic or Manual - Which is Better for MPG?"
+author: "Carlos Schuler"
+date: "8/17/2020"
+output: 
+  ioslides_presentation:
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Automatic or manual better for MPG??
+
+### A quick look at the *mtcars* dataset:
+
+```{r intialize, include=FALSE}
+library(tidyverse)
+library(plotly)
+data("mtcars")
+mtcars <- as_tibble(mtcars)
+mtcarsF<-mtcars
+mtcarsF$cyl <-  factor(mtcarsF$cyl)
+mtcarsF$vs <-   factor(mtcarsF$vs,labels = c("V block","S block"))
+mtcarsF$am <-   factor(mtcarsF$am,labels = c("Automatic","Manual"))
+mtcarsF$gear <- factor(mtcarsF$gear)
+mtcarsF$carb <- factor(mtcarsF$carb)
+wtMedian <- median(mtcarsF$wt)
+lightWeight=paste("<",wtMedian)
+heavyWeight=paste(">",wtMedian)
+mtcarsF <- mtcarsF %>% mutate(wtQ=factor(ntile(wt,2),labels=c(lightWeight,heavyWeight)))
+rownames(mtcarsF)<-rownames(mtcars)
+```
+```{r mpgPlot, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", fig.height=3}
+ax <- list(zeroline = TRUE, showline = TRUE, mirror = "ticks", gridcolor = "#F2F2F2",
+  gridwidth = 0, zerolinecolor = toRGB("red"), zerolinewidth = 1, linecolor = toRGB("black"),
+  linewidth = 2
+)
+ay <- list(zeroline = TRUE, showline = TRUE, mirror = "ticks", gridcolor = toRGB("lightblue"),
+  gridwidth = 1, zerolinecolor = toRGB("red"), zerolinewidth = 1, linecolor = toRGB("black"),
+  linewidth = 2
+)
+y1<-mtcarsF[mtcarsF$am=="Automatic",]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual",]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic") %>% 
+        add_trace(y= y2, name="Manual") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',xaxis=ax, yaxis=ay)
+fig
+```
+
+### suggests that **Manual transmissions** yield a better MPG
+
+### BUT ...
+
+## Grouping by Number of Cylinders ...
+
+```{r mpgPlot2-1, echo=FALSE,warning=FALSE, message=FALSE,fig.align="center", fig.height=1.9}
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$cyl=="4",]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$cyl=="4",]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, 4 cyl") %>% 
+        add_trace(y= y2, name="Manual, 4 cyl") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',xaxis=ax, yaxis=ay)
+fig
+
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$cyl=="6",]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$cyl=="6",]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, 6 cyl") %>% 
+        add_trace(y= y2, name="Manual, 6 cyl") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',xaxis=ax, yaxis=ay)
+fig
+
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$cyl=="8",]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$cyl=="8",]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, 8 cyl") %>% 
+        add_trace(y= y2, name="Manual, 8 cyl") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',xaxis=ax, yaxis=ay)
+fig
+```
+
+## Grouping by Weight ...
+
+```{r mpgPlot2-2, echo=FALSE,warning=FALSE, message=FALSE,fig.align="center", fig.height=1.9}
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$wtQ==lightWeight,]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$wtQ==lightWeight,]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, Light") %>% 
+        add_trace(y= y2, name="Manual, Light") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',xaxis=ax, yaxis=ay)
+fig
+
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$wtQ==heavyWeight,]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$wtQ==heavyWeight,]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, Heavy") %>% 
+        add_trace(y= y2, name="Manual, Heavy") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',xaxis=ax, yaxis=ay)
+fig
+```
+
+## We notice it is not that clear!!
+
+- For 4-cyl vehicles, a manual transmission appears to yield higher MPG
+- However, that appears **not to be the case** for 8-cyl vehicles 
+- Also, for lighter vehicles (weighing less than the median for the sample), the relationship between MPG and transmission type appears not to be significant 
+    + (*note*: there is only one vehicle weighing higher than the median weight with an manual transmission in the sample, the **Maserati Bora**. Its MPG does not appear to be better than other vehicles in its weight class.)
+
+## CODE
+```{r showcode, echo=TRUE, eval=FALSE}
+library(tidyverse)
+library(plotly)
+data("mtcars")
+mtcars <- as_tibble(mtcars)
+mtcarsF<-mtcars
+mtcarsF$cyl <-  factor(mtcarsF$cyl)
+mtcarsF$vs <-   factor(mtcarsF$vs,labels = c("V block","S block"))
+mtcarsF$am <-   factor(mtcarsF$am,labels = c("Automatic","Manual"))
+mtcarsF$gear <- factor(mtcarsF$gear)
+mtcarsF$carb <- factor(mtcarsF$carb)
+wtMedian <- median(mtcarsF$wt)
+lightWeight=paste("<",wtMedian)
+heavyWeight=paste(">",wtMedian)
+mtcarsF <- mtcarsF %>% mutate(wtQ=factor(ntile(wt,2),
+                        labels=c(lightWeight,heavyWeight)))
+rownames(mtcarsF)<-rownames(mtcars)
+```
+
+***
+```{r showcode2, echo=TRUE, eval=FALSE}
+ax <- list(zeroline = TRUE, showline = TRUE, mirror = "ticks", 
+  gridcolor = "#F2F2F2", gridwidth = 0, 
+  zerolinecolor = toRGB("red"), zerolinewidth = 1, 
+  linecolor = toRGB("black"), linewidth = 2)
+ay <- list(zeroline = TRUE, showline = TRUE, mirror = "ticks", 
+  gridcolor = toRGB("lightblue"), gridwidth = 1, 
+  zerolinecolor = toRGB("red"), zerolinewidth = 1, 
+  linecolor = toRGB("black"), linewidth = 2)
+
+y1<-mtcarsF[mtcarsF$am=="Automatic",]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual",]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic") %>% 
+        add_trace(y= y2, name="Manual") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2'
+               ,xaxis=ax, yaxis=ay)
+fig
+```
+
+***
+```{r showcode3, echo=TRUE, eval=FALSE}
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$cyl=="4",]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$cyl=="4",]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, 4 cyl") %>% 
+        add_trace(y= y2, name="Manual, 4 cyl") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',
+               xaxis=ax, yaxis=ay)
+fig
+
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$cyl=="6",]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$cyl=="6",]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, 6 cyl") %>% 
+        add_trace(y= y2, name="Manual, 6 cyl") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',
+               xaxis=ax, yaxis=ay)
+fig
+```
+
+***
+```{r showcode4, echo=TRUE, eval=FALSE}
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$cyl=="8",]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$cyl=="8",]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, 8 cyl") %>% 
+        add_trace(y= y2, name="Manual, 8 cyl") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',
+               xaxis=ax, yaxis=ay)
+fig
+
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$wtQ==lightWeight,]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$wtQ==lightWeight,]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, Light") %>% 
+        add_trace(y= y2, name="Manual, Light") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',
+               xaxis=ax, yaxis=ay)
+fig
+```
+
+***
+```{r showcode5, echo=TRUE, eval=FALSE}
+y1<-mtcarsF[mtcarsF$am=="Automatic" & mtcarsF$wtQ==heavyWeight,]$mpg
+y2<-mtcarsF[mtcarsF$am=="Manual"    & mtcarsF$wtQ==heavyWeight,]$mpg
+fig <- plot_ly(y= y1, type="box", name="Automatic, Heavy") %>% 
+        add_trace(y= y2, name="Manual, Heavy") %>% 
+        layout(paper_bgcolor='#F2F2F2', plot_bgcolor='#F2F2F2',
+               xaxis=ax, yaxis=ay)
+fig
+```
